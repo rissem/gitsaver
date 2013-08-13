@@ -3,6 +3,7 @@
 <html>
 	<head>
 		<title>Gitsaver!</title>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 		<script src="/index.js"></script>
 		<script src="/d3.layout.cloud.js"></script>
@@ -10,20 +11,38 @@
 	<body>
 		<h1>Gitsaver</h1>
 		<script>
+
+		  function getRepos(callback)
+		  {
+			$.ajax({url:'https://api.github.com/legacy/repos/search/d?sort=forks'}).done(function(resp) {
+				console.log('resp', resp);
+
+				repos = resp.repositories.map(function(d){ 
+					fontSize = parseInt(d.forks/50);
+					console.log('fontSize', fontSize);
+					return { text: d.name, size: fontSize }});
+
+				console.log("REPOS", repos);
+				callback(repos);
+			});
+			 
+		  }
+
 		  var fill = d3.scale.category20();
 
-		  d3.layout.cloud().size([600, 400])
-		      .words([
-		        "Hello", "world", "normally", "you", "want", "more", "words",
-		        "than", "this", "a", "metamorphosis", "other", "big", "worlds"].map(function(d) {
-		        return {text: d, size: 10 + Math.random() * 90};
-		      }))
+
+
+		  initCloud = function(data) { d3.layout.cloud().size([600, 400])
+		      .words(data)
 		      .padding(5)
 		      .rotate(function() { return ~~(Math.random() * 2) * 90; })
 		      .font("Impact")
 		      .fontSize(function(d) { return d.size; })
 		      .on("end", draw)
 		      .start();
+		  }
+
+		  getRepos(initCloud);
 
 		  function draw(words) {
 		    d3.select("body").append("svg")
